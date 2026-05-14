@@ -778,8 +778,9 @@ const VideoModal = ({
                     key={`${vid.video_id}-${playerVersion}`}
                     sources={getVideoSources(
                       vid.video_id,
-                      editMode ? { ...vid?.info, has_crop: false } : vid?.info,
+                      vid?.info,
                       vid.extension,
+                      { forceOriginal: editMode },
                     )}
                     poster={getPosterUrl()}
                     autoplay={autoplay}

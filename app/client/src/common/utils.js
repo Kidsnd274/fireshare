@@ -206,7 +206,7 @@ export const getImageUrl = (imageId) => {
  * @param {string} extension - Video file extension (e.g., '.mp4', '.mkv')
  * @returns {Array} Array of video sources for Video.js
  */
-export const getVideoSources = (videoId, videoInfo, extension) => {
+export const getVideoSources = (videoId, videoInfo, extension, { forceOriginal = false } = {}) => {
   const sources = []
   const URL = getUrl()
   const SERVED_BY = getServedBy()
@@ -216,12 +216,15 @@ export const getVideoSources = (videoId, videoInfo, extension) => {
   const has1080p = videoInfo?.has_1080p
   const hasCrop = videoInfo?.has_crop
 
-  // When a cropped version exists, point "Source" at the cropped file instead of the original
-  const sourceUrl = hasCrop
-    ? SERVED_BY === 'nginx'
-      ? `${URL}/_content/derived/${videoId}/${videoId}-cropped.mp4`
-      : `${URL}/api/video?id=${videoId}&quality=cropped`
-    : getVideoUrl(videoId, 'original', extension)
+  // forceOriginal bypasses the crop — used by the editor so admins see the full uncut video
+  const sourceUrl =
+    forceOriginal && SERVED_BY === 'nginx'
+      ? `${URL}/_content/video-raw/${videoId}${extension}`
+      : hasCrop
+        ? SERVED_BY === 'nginx'
+          ? `${URL}/_content/derived/${videoId}/${videoId}-cropped.mp4`
+          : `${URL}/api/video?id=${videoId}&quality=cropped`
+        : getVideoUrl(videoId, 'original', extension)
 
   sources.push({
     src: sourceUrl,

@@ -787,6 +787,14 @@ def unlock_video(video_id):
     return jsonify({"error": "Incorrect password"}), 403
 
 
+@api.route('/api/video/nginx-auth-admin')
+def nginx_video_auth_admin():
+    """Internal endpoint called by nginx auth_request to gate the raw (uncropped) video path."""
+    if current_user.is_authenticated:
+        return '', 200
+    return '', 403
+
+
 @api.route('/api/video/nginx-auth')
 def nginx_video_auth():
     """Internal endpoint called by nginx auth_request to gate password-protected video files."""
