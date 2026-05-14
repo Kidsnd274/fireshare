@@ -460,6 +460,7 @@ const GameVideos = ({ cardSize, authenticated, searchText }) => {
         feedView={false}
         authenticated={authenticated}
         updateCallback={handleVideoUpdate}
+        onSuggestionSelect={(id) => setVideoModal({ open: true, id })}
         onNext={() => {
           const videoItems = sortedMedia.filter((m) => m.type === 'video').map((m) => m.item)
           const i = videoItems.findIndex((v) => v.video_id === videoModal.id)
