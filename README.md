@@ -275,7 +275,7 @@ Contributions are welcome. For larger changes, open an issue first to align on s
 
 For issues and feature requests, visit the [issue tracker](https://github.com/ShaneIsrael/fireshare/issues).
 
-Please DO NOT open a pull request for a feature or addition that was not previously discussed with me. Pull requests that do this will be automatically closed.
+**Please DO NOT open a pull request for a feature or addition that was not previously discussed with me. Pull requests that do this will be automatically closed.**
 
 ### Database Changes
 
