@@ -264,15 +264,54 @@ function SpacebarToggle() {
 
 /**
  * FrameStepKeys — listens for , and . keys to step one frame backward/forward.
- * Assumes 30 fps since HTML5 video does not expose the actual frame rate.
+ * Detects the actual frame duration via requestVideoFrameCallback during playback;
+ * falls back to 30 fps until the real rate is known.
  * Must be rendered inside <Player.Provider>.
  */
-const FRAME_DURATION = 1 / 30
 const FRAME_STEP_INTERVAL_MS = 150
 
 function FrameStepKeys() {
   const media = Player.useMedia()
   const lastStepAt = useRef(0)
+  const frameDuration = useRef(1 / 30)
+  // Prevents the play/pause frame-render trick from poisoning rVFC measurements
+  const isStepping = useRef(false)
+
+  // Measure real frame duration from the video stream as it plays naturally.
+  // Callbacks that fire during our own play/pause seek trick are ignored.
+  useEffect(() => {
+    if (!media || typeof media.requestVideoFrameCallback !== 'function') return
+
+    let handle
+    let prevMediaTime = null
+    let prevPresentedFrames = null
+
+    const onFrame = (_, metadata) => {
+      if (!isStepping.current && prevMediaTime !== null && prevPresentedFrames !== null) {
+        const timeDelta = metadata.mediaTime - prevMediaTime
+        // presentedFrames counts every composited frame, so dividing gives the
+        // true per-frame duration even when the callback fires every 2-4 frames
+        const frameDelta = metadata.presentedFrames - prevPresentedFrames
+        if (frameDelta > 0 && timeDelta > 0) {
+          const perFrame = timeDelta / frameDelta
+          if (perFrame > 1 / 240 && perFrame < 1 / 8) {
+            frameDuration.current = perFrame
+          }
+        }
+      }
+      if (!isStepping.current) {
+        prevMediaTime = metadata.mediaTime
+        prevPresentedFrames = metadata.presentedFrames
+      } else {
+        prevMediaTime = null
+        prevPresentedFrames = null
+      }
+      handle = media.requestVideoFrameCallback(onFrame)
+    }
+
+    handle = media.requestVideoFrameCallback(onFrame)
+    return () => media.cancelVideoFrameCallback(handle)
+  }, [media])
 
   useEffect(() => {
     if (!media) return
@@ -287,14 +326,23 @@ function FrameStepKeys() {
       lastStepAt.current = now
 
       e.preventDefault()
+      isStepping.current = true
       media.pause()
       media.currentTime = Math.min(
-        Math.max(media.currentTime + (e.key === '.' ? FRAME_DURATION : -FRAME_DURATION), 0),
+        Math.max(media.currentTime + (e.key === '.' ? frameDuration.current : -frameDuration.current), 0),
         media.duration || 0,
       )
       // Force the browser to decode and paint the new frame even if play()
       // has never been called (before first play the renderer stays frozen).
-      media.play().then(() => media.pause()).catch(() => {})
+      media
+        .play()
+        .then(() => {
+          media.pause()
+          isStepping.current = false
+        })
+        .catch(() => {
+          isStepping.current = false
+        })
     }
 
     document.addEventListener('keydown', handleKeyDown)
