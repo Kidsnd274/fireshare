@@ -263,6 +263,48 @@ function SpacebarToggle() {
 }
 
 /**
+ * FrameStepKeys — listens for , and . keys to step one frame backward/forward.
+ * Assumes 30 fps since HTML5 video does not expose the actual frame rate.
+ * Must be rendered inside <Player.Provider>.
+ */
+const FRAME_DURATION = 1 / 30
+const FRAME_STEP_INTERVAL_MS = 150
+
+function FrameStepKeys() {
+  const media = Player.useMedia()
+  const lastStepAt = useRef(0)
+
+  useEffect(() => {
+    if (!media) return
+
+    const handleKeyDown = (e) => {
+      if (e.key !== ',' && e.key !== '.') return
+      const tag = document.activeElement?.tagName?.toLowerCase()
+      if (tag === 'input' || tag === 'textarea' || tag === 'select') return
+
+      const now = Date.now()
+      if (now - lastStepAt.current < FRAME_STEP_INTERVAL_MS) return
+      lastStepAt.current = now
+
+      e.preventDefault()
+      media.pause()
+      media.currentTime = Math.min(
+        Math.max(media.currentTime + (e.key === '.' ? FRAME_DURATION : -FRAME_DURATION), 0),
+        media.duration || 0,
+      )
+      // Force the browser to decode and paint the new frame even if play()
+      // has never been called (before first play the renderer stays frozen).
+      media.play().then(() => media.pause()).catch(() => {})
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [media])
+
+  return null
+}
+
+/**
  * VideoJSPlayer — a drop-in replacement powered by Video.js 10.
  *
  * Accepts the same props as the previous v8 component so that consumers
@@ -331,6 +373,7 @@ const VideoJSPlayer = ({
         startTime={startTime}
       />
       <SpacebarToggle />
+      <FrameStepKeys />
     </Player.Provider>
   )
 }
