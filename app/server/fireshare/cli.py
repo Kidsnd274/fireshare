@@ -1182,8 +1182,8 @@ def scan_image(ctx, path, game_id, tag_ids, title):
             else:
                 logger.debug(f"Image {iid} already indexed")
         else:
-            created_at = datetime.fromtimestamp(os.path.getmtime(str(img_file)))
-            updated_at = datetime.fromtimestamp(os.path.getmtime(str(img_file)))
+            created_at = util.extract_date_from_image_file(img_file)
+            updated_at = created_at
             source_folder = rel_path.split('/')[0] if '/' in rel_path else None
             img = Image(image_id=iid, extension=img_file.suffix, path=rel_path,
                         available=True, created_at=created_at, updated_at=updated_at,
