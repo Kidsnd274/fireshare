@@ -252,6 +252,7 @@ const [uiConfig, setUiConfig] = React.useState(() => getSetting('ui_config') || 
     if (p.href === '/images' && uiConfig.show_images === false) return false
     if (p.href === '/games' && uiConfig.show_games === false) return false
     if (p.href === '/tags' && uiConfig.show_tags === false) return false
+    if (p.href === '/folders' && uiConfig.show_folders === false) return false
     return true
   })
 

@@ -528,7 +528,7 @@ const Settings = () => {
               <option value={1}>Sidebar</option>
               <option value={2}>Integrations</option>
               <option value={3}>Transcoding</option>
-              <option value={4}>Folders</option>
+              <option value={4}>Folder Rules</option>
               <option value={5}>Actions</option>
             </NativeSelect>
           </FormControl>
@@ -555,7 +555,7 @@ const Settings = () => {
             <Tab label="Sidebar" />
             <Tab label="Integrations" />
             <Tab label="Transcoding" />
-            <Tab label="Folders" />
+            <Tab label="Folder Rules" />
             <Tab label="Actions" />
           </Tabs>
         )}
@@ -811,6 +811,20 @@ const Settings = () => {
                       />
                     }
                     label="Tags"
+                  />
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={updatedConfig.ui_config?.show_folders !== false}
+                        onChange={(e) =>
+                          setUpdatedConfig((prev) => ({
+                            ...prev,
+                            ui_config: { ...prev.ui_config, show_folders: e.target.checked },
+                          }))
+                        }
+                      />
+                    }
+                    label="Folders"
                   />
                   <FormControlLabel
                     control={
@@ -1189,7 +1203,7 @@ const Settings = () => {
                 </Stack>
               )}
 
-              {/* Folders */}
+              {/* Folder Rules */}
               {activeTab === 4 && (
                 <Stack spacing={2} sx={{ maxWidth: 500, mt: -1 }}>
                   <Tabs
@@ -1504,21 +1518,21 @@ const Settings = () => {
                   </Button>
                   <Button
                     variant="contained"
+                    startIcon={<FolderCopyIcon />}
+                    onClick={handleScanFolders}
+                    size="large"
+                    sx={{ width: '100%', maxWidth: 400 }}
+                  >
+                    Scan for Folders
+                  </Button>
+                  <Button
+                    variant="contained"
                     startIcon={<UpdateIcon />}
                     onClick={handleRescanDates}
                     size="large"
                     sx={{ width: '100%', maxWidth: 400 }}
                   >
                     Rescan Image / Video Dates
-                  </Button>
-                  <Button
-                    variant="contained"
-                    startIcon={<FolderCopyIcon />}
-                    onClick={handleScanFolders}
-                    size="large"
-                    sx={{ width: '100%', maxWidth: 400 }}
-                  >
-                    Scan Folders
                   </Button>
                 </Stack>
               )}

@@ -45,6 +45,7 @@ import { folderSelectTheme as selectFolderTheme } from '../../common/reactSelect
 import MarqueeSingleValue, { MarqueeOption } from '../ui/MarqueeSingleValue'
 import OutlinedIconButton from '../ui/OutlinedIconButton'
 import FolderPrivacyToggle from './FolderPrivacyToggle'
+import FolderLinkActions from './FolderLinkActions'
 import { dialogPaperSx, dialogTitleSx, inputSx, labelSx, rowBoxSx } from '../../common/modalStyles'
 import Api from '../../services/Api'
 import { formatSize, formatTableDate, formatResolution } from '../../common/utils'
@@ -1293,7 +1294,12 @@ export default function ImageFileManager({ setAlert }) {
                         }}
                         onClick={(e) => e.stopPropagation()}
                       >
-                        {folder && <FolderPrivacyToggle path={folder} mediaType="image" setAlert={setAlert} />}
+                        {folder && groupItems.length > 0 && (
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <FolderPrivacyToggle path={folder} mediaType="image" setAlert={setAlert} />
+                            <FolderLinkActions path={folder} mediaType="image" setAlert={setAlert} />
+                          </Box>
+                        )}
                       </TableCell>
                       <TableCell
                         colSpan={COL_SPAN - 2}
