@@ -23,6 +23,89 @@ const FOLDER_SORT_OPTIONS = [
   { value: 'type', label: 'Type' },
 ]
 
+// Toggle between the two folder thumbnail layouts: '2x2' (grid collage) or 'hero' (hero + side strip)
+const FOLDER_THUMB_LAYOUT = 'hero'
+
+const ThumbHeroStrip = ({ folder }) => {
+  const items = folder.recent_items || []
+  const getThumb = (id) => (folder.media_type === 'image' ? getImageThumbnailUrl(id) : getPosterUrl(id))
+
+  if (items.length === 0) {
+    return (
+      <Box
+        sx={{
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          bgcolor: '#001E3C',
+        }}
+      >
+        <FolderIcon sx={{ fontSize: 48, color: '#FFFFFF33' }} />
+      </Box>
+    )
+  }
+
+  const cellSx = { width: '100%', height: '100%', objectFit: 'cover', display: 'block', bgcolor: '#001E3C' }
+  const stripItems = items.slice(1, 4)
+
+  if (stripItems.length === 0) {
+    return (
+      <Box
+        component="img"
+        src={getThumb(items[0])}
+        onError={(e) => {
+          e.currentTarget.style.display = 'none'
+        }}
+        sx={cellSx}
+      />
+    )
+  }
+
+  return (
+    <Box
+      sx={{
+        width: '100%',
+        height: '100%',
+        display: 'grid',
+        gridTemplateColumns: '1fr auto',
+        gap: '2px',
+      }}
+    >
+      <Box
+        component="img"
+        src={getThumb(items[0])}
+        onError={(e) => {
+          e.currentTarget.style.display = 'none'
+        }}
+        sx={cellSx}
+      />
+      <Box
+        sx={{
+          width: '64px',
+          height: '100%',
+          display: 'grid',
+          gridTemplateRows: `repeat(${stripItems.length}, 1fr)`,
+          gap: '2px',
+        }}
+      >
+        {stripItems.map((id, i) => (
+          <Box
+            key={id || i}
+            component="img"
+            src={getThumb(id)}
+            onError={(e) => {
+              e.currentTarget.style.display = 'none'
+            }}
+            sx={cellSx}
+          />
+        ))}
+      </Box>
+    </Box>
+  )
+}
+
 const ThumbCollage = ({ folder }) => {
   const items = folder.recent_items || []
   const getThumb = (id) => (folder.media_type === 'image' ? getImageThumbnailUrl(id) : getPosterUrl(id))
@@ -228,28 +311,11 @@ const Folders = ({ authenticated, searchText }) => {
                     },
                   }}
                 >
-                  <ThumbCollage folder={folder} />
-
-                  {/* Media type indicator */}
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      bottom: 8,
-                      right: 8,
-                      zIndex: 1,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: '#FFFFFFCC',
-                      pointerEvents: 'none',
-                    }}
-                  >
-                    {folder.media_type === 'image' ? (
-                      <ImageIcon sx={{ fontSize: 30 }} />
-                    ) : (
-                      <VideocamIcon sx={{ fontSize: 30 }} />
-                    )}
-                  </Box>
+                  {FOLDER_THUMB_LAYOUT === 'hero' ? (
+                    <ThumbHeroStrip folder={folder} />
+                  ) : (
+                    <ThumbCollage folder={folder} />
+                  )}
 
                   {/* Privacy toggle button */}
                   {authenticated && (
@@ -298,27 +364,40 @@ const Folders = ({ authenticated, searchText }) => {
                       position: 'absolute',
                       bottom: -1,
                       left: 0,
-                      right: 0,
+                      width: '100%',
+                      display: 'inline-block',
                       p: 1,
-                      pt: 3,
-                      background: 'linear-gradient(to top, #000000E6 40%, transparent)',
+                      pr: 3,
+                      pt: 5,
+                      background: `
+                        linear-gradient(to top, #000000bb 55%, transparent)
+                      `,
                     }}
                   >
-                    <Typography
-                      sx={{
-                        color: 'white',
-                        fontWeight: 700,
-                        fontSize: 15,
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                      }}
-                    >
-                      {folder.name}
-                    </Typography>
-                    <Typography sx={{ color: '#FFFFFFAA', fontSize: 12 }}>
-                      {folder.item_count} item{folder.item_count !== 1 ? 's' : ''}
-                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      {folder.media_type === 'image' ? (
+                        <ImageIcon sx={{ fontSize: 32, color: '#FFFFFFCC', flexShrink: 0 }} />
+                      ) : (
+                        <VideocamIcon sx={{ fontSize: 32, color: '#FFFFFFCC', flexShrink: 0 }} />
+                      )}
+                      <Box sx={{ minWidth: 0 }}>
+                        <Typography
+                          sx={{
+                            color: 'white',
+                            fontWeight: 700,
+                            fontSize: 15,
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                          }}
+                        >
+                          {folder.name}
+                        </Typography>
+                        <Typography sx={{ color: '#FFFFFFAA', fontSize: 12 }}>
+                          {folder.item_count} item{folder.item_count !== 1 ? 's' : ''}
+                        </Typography>
+                      </Box>
+                    </Box>
                   </Box>
                 </Box>
               </motion.div>
